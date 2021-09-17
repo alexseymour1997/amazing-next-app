@@ -4,10 +4,17 @@ metadata:
   generateName: amazing-next-app-pipeline-run-
 spec:
   pipelineRef:
-    name: amazing-next-app-pipeline
+    name: amazing-next-app-pipeline-frontend
+  serviceAccountName: build-bot
   params:
     - name: source-repo
       value: https://github.com/alexseymour1997/amazing-next-app
+    - name: image-repo
+      value: quay.io/hendrik_loeffel/amazing-next-app
+    - name: branch-name
+      value: main
+    - name: app-name
+      value: frontend
   workspaces:
     - name: amazing-next-app-workspace
       volumeClaimTemplate:
@@ -17,3 +24,6 @@ spec:
           resources:
             requests:
               storage: 1Gi
+
+
+

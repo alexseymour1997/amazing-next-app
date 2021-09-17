@@ -1,0 +1,80 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: amazing-next-app-pipeline-frontend
+spec:
+  params:
+    - name: source-repo
+      type: string
+      description: The git repository URL to clone from.
+    - name: branch-name
+      type: string
+      description: The git branch to clone.
+    - name: image-repo
+      type: string  
+    - name: app-name
+      type: string  
+  workspaces:
+    - name: amazing-next-app-workspace
+      description: |
+        This workspace will receive the cloned git repo and be passed
+        to the next Task for the repo's README.md file to be read.
+  tasks:
+    - name: clone-repo
+      taskRef:
+        name: git-clone
+        kind: ClusterTask
+      workspaces:
+        - name: output
+          workspace: amazing-next-app-workspace
+      params:
+        - name: url
+          value: $(params.source-repo)
+        - name: revision
+          value: $(params.branch-name)  
+    - name: run-tests
+      workspaces:
+        - name: source
+          workspace: amazing-next-app-workspace
+      taskRef: 
+        name: npm
+      params:
+        - name: ARGS
+          value:
+            - install-ci-test
+      runAfter:
+        - clone-repo
+
+    - name: build-and-push-image
+      runAfter:
+        - run-tests
+      taskRef:
+        kind: ClusterTask
+        name: buildah
+      params:
+        - name: IMAGE
+          value: "$(params.image-repo):$(tasks.clone-repo.results.commit)"
+      workspaces:
+        - name: source
+          workspace: amazing-next-app-workspace
+
+    - name: create-envorinment-config
+      runAfter:
+        - build-and-push-image
+      taskRef:
+        name: kustomize
+      params:
+        - name: app-name
+          value: "$(params.app-name)"
+        - name: app-namespace
+          value: "$(context.pipelineRun.namespace)"
+        - name: source-repo
+          value: "$(params.source-repo)"
+        - name: commit
+          value: "$(tasks.clone-repo.results.commit)"
+        - name: image-repo
+          value: "$(params.image-repo)"
+      workspaces:
+        - name: source
+          workspace: amazing-next-app-workspace
+ 
