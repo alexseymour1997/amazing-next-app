@@ -77,4 +77,18 @@ spec:
       workspaces:
         - name: source
           workspace: amazing-next-app-workspace
+    
+    - name: try-to-deploy
+      runAfter:
+        - create-envorinment-config
+      taskRef:
+        name: try-to-deploy
+      params:
+        - name: app-name
+          value: "$(params.app-name)"
+        - name: app-namespace
+          value: "$(context.pipelineRun.namespace)"
+      workspaces:
+        - name: source
+          workspace: amazing-next-app-workspace
  

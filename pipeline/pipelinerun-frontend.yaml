@@ -5,7 +5,7 @@ metadata:
 spec:
   pipelineRef:
     name: amazing-next-app-pipeline-frontend
-  serviceAccountName: build-bot
+  serviceAccountName: build-bot-frontend
   params:
     - name: source-repo
       value: https://github.com/alexseymour1997/amazing-next-app
